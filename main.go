@@ -4,10 +4,11 @@ import (
 	"log"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/mouredeervarse/go-power-unit/internal/config"
 	"github.com/mouredeervarse/go-power-unit/internal/unit"
 	"github.com/mouredeervarse/go-power-unit/internal/watcher"
-	"github.com/spf13/cobra"
 )
 
 func main() {

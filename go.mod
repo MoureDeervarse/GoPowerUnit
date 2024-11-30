@@ -12,3 +12,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	golang.org/x/sys v0.15.0 // indirect
 )
+
+// for local test
+// replace github.com/mouredeervarse/go-power-unit => ./
