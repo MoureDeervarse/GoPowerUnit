@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 
@@ -12,6 +15,12 @@ import (
 )
 
 func main() {
+	fmt.Println("GoPowerUnit on running...")
+
+	// create channel for signal handling
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
 	var rootCmd = &cobra.Command{
 		Use:   "live-reload",
 		Short: "A live reload tool for Go projects",
@@ -25,6 +34,18 @@ func main() {
 			w := watcher.New(cfg)
 			r := unit.NewLocalUnit(cfg.ProjectPath)
 
+			// setup signal handler
+			go func() {
+				<-sigChan
+				fmt.Println("\nShutting down...")
+				if err := r.Cleanup(); err != nil {
+					log.Printf("Cleanup error: %v", err)
+				}
+				os.Exit(0)
+			}()
+
+			// first start
+			_ = r.Reload()
 			w.Watch(r.Reload)
 		},
 	}
@@ -33,11 +54,11 @@ func main() {
 		Use:   "docker",
 		Short: "Run project in Docker with live reload",
 		Run: func(cmd *cobra.Command, args []string) {
-			cfg := config.Load()
-			w := watcher.New(cfg)
-			r := unit.NewDockerUnit(cfg.ProjectPath, cfg.DockerImage, cfg.DockerImage)
+			// cfg := config.Load()
+			// w := watcher.New(cfg)
+			// r := unit.NewDockerUnit(cfg.ProjectPath, cfg.DockerImage, cfg.DockerImage)
 
-			w.Watch(r.Reload)
+			// w.Watch(r.Reload)
 		},
 	}
 

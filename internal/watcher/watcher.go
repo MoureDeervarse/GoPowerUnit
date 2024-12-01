@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/mouredeervarse/go-power-unit/internal/config"
@@ -12,6 +13,7 @@ import (
 type Watcher struct {
 	cfg     *config.Config
 	watcher *fsnotify.Watcher
+	timer   *time.Timer
 }
 
 func New(cfg *config.Config) *Watcher {
@@ -35,7 +37,6 @@ func (w *Watcher) Watch(reloadFunc func() error) {
 				return err
 			}
 			if info.IsDir() {
-				// TODO: Check if path should be ignored
 				return w.watcher.Add(path)
 			}
 			return nil
@@ -45,6 +46,7 @@ func (w *Watcher) Watch(reloadFunc func() error) {
 		}
 	}
 
+	const cooldown = 500 * time.Millisecond
 	done := make(chan bool)
 	go func() {
 		for {
@@ -53,10 +55,15 @@ func (w *Watcher) Watch(reloadFunc func() error) {
 				if !ok {
 					return
 				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					if err := reloadFunc(); err != nil {
-						log.Println("reload error:", err)
+				if event.Op&fsnotify.Write == fsnotify.Write && filepath.Ext(event.Name) == ".go" {
+					if w.timer != nil {
+						w.timer.Stop()
 					}
+					w.timer = time.AfterFunc(cooldown, func() {
+						if err := reloadFunc(); err != nil {
+							log.Println("reload error:", err)
+						}
+					})
 				}
 			case err, ok := <-w.watcher.Errors:
 				if !ok {

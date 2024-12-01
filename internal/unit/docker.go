@@ -31,17 +31,17 @@ func (u *DockerUnit) Start() error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
-	// 이미지 빌드
+	// build image
 	buildCmd := exec.CommandContext(u.ctx, "docker", "build", "-t", u.imageName, u.projectPath)
 	if err := buildCmd.Run(); err != nil {
 		return fmt.Errorf("docker build failed: %w", err)
 	}
 
-	// 기존 컨테이너 제거
+	// remove existing container
 	stopCmd := exec.CommandContext(u.ctx, "docker", "rm", "-f", u.containerName)
-	stopCmd.Run() // 에러 무시 (컨테이너가 없을 수 있음)
+	stopCmd.Run() // ignore error (container might not exist)
 
-	// 새 컨테이너 실행
+	// run new container
 	runCmd := exec.CommandContext(u.ctx, "docker", "run",
 		"-d",
 		"--name", u.containerName,

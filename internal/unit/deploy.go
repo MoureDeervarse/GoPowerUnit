@@ -25,26 +25,26 @@ func NewDeployUnit(projectPath, imageName, registryURL, deployEndpoint string) *
 }
 
 func (u *DeployUnit) Start() error {
-	// 이미지 빌드
+	// build image
 	buildCmd := exec.Command("docker", "build", "-t", u.imageName, u.projectPath)
 	if err := buildCmd.Run(); err != nil {
 		return fmt.Errorf("docker build failed: %w", err)
 	}
 
-	// 레지스트리 태그 추가
+	// add registry tag
 	registryImage := fmt.Sprintf("%s/%s", u.registryURL, u.imageName)
 	tagCmd := exec.Command("docker", "tag", u.imageName, registryImage)
 	if err := tagCmd.Run(); err != nil {
 		return fmt.Errorf("docker tag failed: %w", err)
 	}
 
-	// 레지스트리에 푸시
+	// push to registry
 	pushCmd := exec.Command("docker", "push", registryImage)
 	if err := pushCmd.Run(); err != nil {
 		return fmt.Errorf("docker push failed: %w", err)
 	}
 
-	// 배포 엔드포인트 호출
+	// call deploy endpoint
 	payload := map[string]string{
 		"image": registryImage,
 	}
@@ -67,7 +67,7 @@ func (u *DeployUnit) Start() error {
 }
 
 func (u *DeployUnit) Stop() error {
-	// 배포된 서비스의 중지는 배포 시스템에서 관리
+	// service stop is managed by deployment system
 	return nil
 }
 
