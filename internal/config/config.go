@@ -7,10 +7,11 @@ type Config struct {
 	DockerImage    string
 	DockerRegistry string
 	DeployURL      string
+	DockerfilePath string
+	Ports          []string
 }
 
 func Load() *Config {
-	// TODO: Implement configuration loading from file or environment variables
 	return &Config{
 		ProjectPath: ".",
 		WatchPaths:  []string{"."},
@@ -19,5 +20,6 @@ func Load() *Config {
 			".git/",
 			"node_modules/",
 		},
+		DockerfilePath: ".",
 	}
 }

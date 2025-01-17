@@ -25,26 +25,26 @@ func NewDeployUnit(projectPath, imageName, registryURL, deployEndpoint string) *
 }
 
 func (u *DeployUnit) Start() error {
-	// build image
+	// Build image
 	buildCmd := exec.Command("docker", "build", "-t", u.imageName, u.projectPath)
 	if err := buildCmd.Run(); err != nil {
 		return fmt.Errorf("docker build failed: %w", err)
 	}
 
-	// add registry tag
+	// Add registry tag
 	registryImage := fmt.Sprintf("%s/%s", u.registryURL, u.imageName)
 	tagCmd := exec.Command("docker", "tag", u.imageName, registryImage)
 	if err := tagCmd.Run(); err != nil {
 		return fmt.Errorf("docker tag failed: %w", err)
 	}
 
-	// push to registry
+	// Push to registry
 	pushCmd := exec.Command("docker", "push", registryImage)
 	if err := pushCmd.Run(); err != nil {
 		return fmt.Errorf("docker push failed: %w", err)
 	}
 
-	// call deploy endpoint
+	// Call deploy endpoint
 	payload := map[string]string{
 		"image": registryImage,
 	}
@@ -67,7 +67,7 @@ func (u *DeployUnit) Start() error {
 }
 
 func (u *DeployUnit) Stop() error {
-	// service stop is managed by deployment system
+	// Stop service is managed by deployment system
 	return nil
 }
 

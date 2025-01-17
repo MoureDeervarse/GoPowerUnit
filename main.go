@@ -31,7 +31,7 @@ func main() {
 		Short: "Run project locally with live reload",
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg := config.Load()
-			w := watcher.New(cfg)
+			w, _ := watcher.New(cfg)
 			r := unit.NewLocalUnit(cfg.ProjectPath)
 
 			// setup signal handler
@@ -54,11 +54,11 @@ func main() {
 		Use:   "docker",
 		Short: "Run project in Docker with live reload",
 		Run: func(cmd *cobra.Command, args []string) {
-			// cfg := config.Load()
-			// w := watcher.New(cfg)
-			// r := unit.NewDockerUnit(cfg.ProjectPath, cfg.DockerImage, cfg.DockerImage)
+			cfg := config.Load()
+			w, _ := watcher.New(cfg)
+			r, _ := unit.NewDockerUnit(cfg)
 
-			// w.Watch(r.Reload)
+			w.Watch(r.OnChange)
 		},
 	}
 

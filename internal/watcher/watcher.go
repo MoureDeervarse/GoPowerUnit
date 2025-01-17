@@ -1,6 +1,7 @@
 package watcher
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -8,24 +9,38 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/mouredeervarse/go-power-unit/internal/config"
+	"github.com/mouredeervarse/go-power-unit/internal/unit"
 )
 
 type Watcher struct {
 	cfg     *config.Config
 	watcher *fsnotify.Watcher
 	timer   *time.Timer
+	units   []*unit.DockerUnit
 }
 
-func New(cfg *config.Config) *Watcher {
-	w, err := fsnotify.NewWatcher()
+func New(cfg *config.Config) (*Watcher, error) {
+	// fsnotify watcher 초기화
+	fsWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("failed to create watcher: %v", err)
 	}
 
-	return &Watcher{
+	w := &Watcher{
 		cfg:     cfg,
-		watcher: w,
+		watcher: fsWatcher,
 	}
+
+	// Docker unit initialization
+	if cfg.DockerImage != "" {
+		dockerUnit, err := unit.NewDockerUnit(cfg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize docker unit: %v", err)
+		}
+		w.units = append(w.units, dockerUnit)
+	}
+
+	return w, nil
 }
 
 func (w *Watcher) Watch(reloadFunc func() error) {
